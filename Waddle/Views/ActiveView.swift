@@ -10,17 +10,12 @@ struct ActiveView: View {
 
     @EnvironmentObject private var viewModel: IntervalViewModel
 
-    // MARK: - Local State
-
-    /// Pause state for the static shell — real pause logic is wired in Milestone 2.
-    @State private var isPaused = false
-
     // MARK: - Body
 
     var body: some View {
         ZStack {
-            // Full-bleed background — colour driven by phase (hardcoded RUN for Milestone 1)
-            Color.runColor.ignoresSafeArea()
+            // Full-bleed background — colour driven by phase (run=coral, walk=teal)
+            viewModel.phaseColor.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 topBar
@@ -69,8 +64,8 @@ struct ActiveView: View {
     /// Phase label, timer digits, progress bar, next-phase preview.
     private var timerSection: some View {
         VStack(spacing: 24) {
-            // Phase label ("RUN" / "WALK")
-            PhaseIndicator(phase: isPaused ? .paused : .run)
+            // Phase label ("RUN" / "WALK" / "PAUSED") — driven by live ViewModel state
+            PhaseIndicator(phase: viewModel.currentPhase)
 
             // Timer countdown in large thin rounded digits
             Text(TimeFormatter.format(viewModel.state.timeRemaining))
@@ -107,16 +102,15 @@ struct ActiveView: View {
     /// Pause / Resume button centred at the bottom.
     private var bottomControls: some View {
         Button {
-            isPaused.toggle()
-            if isPaused {
-                viewModel.pause()
-            } else {
+            if viewModel.state.phase == .paused {
                 viewModel.resume()
+            } else {
+                viewModel.pause()
             }
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: isPaused ? "play.fill" : "pause.fill")
-                Text(isPaused ? "Resume" : "Pause")
+                Image(systemName: viewModel.state.phase == .paused ? "play.fill" : "pause.fill")
+                Text(viewModel.state.phase == .paused ? "Resume" : "Pause")
             }
             .font(.system(.title3, design: .default).weight(.medium))
             .foregroundStyle(.white)
@@ -124,7 +118,7 @@ struct ActiveView: View {
             .padding(.vertical, 16)
             .background(.white.opacity(0.2), in: Capsule())
         }
-        .accessibilityLabel(isPaused ? "Resume workout" : "Pause workout")
+        .accessibilityLabel(viewModel.state.phase == .paused ? "Resume workout" : "Pause workout")
     }
 
     // MARK: - Helpers
