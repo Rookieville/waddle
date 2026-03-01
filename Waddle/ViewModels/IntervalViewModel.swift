@@ -3,6 +3,7 @@
 import SwiftUI
 import Combine
 import UIKit
+import ActivityKit
 
 // MARK: - AppRoute
 
@@ -70,6 +71,10 @@ final class IntervalViewModel: ObservableObject {
 
     /// `state.currentCycle` captured at the instant of backgrounding.
     private var cycleAtBackground: Int = 1
+
+    // MARK: - Live Activity
+
+    private var activity: Activity<WaddleActivityAttributes>?
 
     // MARK: - Init
 
@@ -166,6 +171,7 @@ final class IntervalViewModel: ObservableObject {
         // if remaining < 1.0; state.timeRemaining is already set above so display
         // is correct without waiting for the first natural tick.
         timerService.start(duration: remaining, fireImmediately: false)
+        updateLiveActivity()
     }
 
     // MARK: - Navigation Helpers
@@ -197,6 +203,7 @@ final class IntervalViewModel: ObservableObject {
         speechService.play(.run)
         timerService.start(duration: settings.runDuration)
         // TimerService fires an immediate tick → state.timeRemaining updates at once
+        startLiveActivity()
     }
 
     func pause() {
@@ -219,6 +226,7 @@ final class IntervalViewModel: ObservableObject {
         speechService.stopEngine()
         timerService.stop()
         audioSessionManager.deactivate()
+        endLiveActivity()
         isRunning = false
         state.phase = .idle
         state.timeRemaining = settings.runDuration
@@ -237,6 +245,7 @@ final class IntervalViewModel: ObservableObject {
 
     private func handleTick(_ remaining: TimeInterval) {
         state.timeRemaining = max(0, remaining)
+        updateLiveActivity()
 
         if remaining < 1.0 {    // switch on the first tick that would display "0:00"
             switchPhase()
@@ -278,6 +287,7 @@ final class IntervalViewModel: ObservableObject {
             speechService.play(.walk)
             timerService.start(duration: settings.walkDuration,
                                fireImmediately: false)          // let scheduled ticks drive it
+            updateLiveActivity()
 
         case .walk:
             // Walk complete → check for cycle completion
@@ -297,6 +307,7 @@ final class IntervalViewModel: ObservableObject {
                     self?.speechService.onAllSpeechFinished = nil
                 }
                 speechService.play(.complete)
+                endLiveActivity()
                 navigate(to: .done)
             } else {
                 // Continue to the next cycle
@@ -317,10 +328,62 @@ final class IntervalViewModel: ObservableObject {
                 }
                 timerService.start(duration: settings.runDuration,
                                    fireImmediately: false)      // let scheduled ticks drive it
+                updateLiveActivity()
             }
 
         default:
             break
+        }
+    }
+
+    // MARK: - Live Activity Actions
+
+    private func startLiveActivity() {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+        let attributes = WaddleActivityAttributes(workoutStarted: Date())
+        let initialState = WaddleActivityAttributes.ContentState(
+            phase: "Run",
+            timeRemaining: Int(settings.runDuration),
+            currentCycle: 1,
+            totalCycles: settings.totalCycles,
+            isUnlimited: settings.mode == .unlimited
+        )
+        do {
+            let content = ActivityContent(state: initialState, staleDate: nil)
+            activity = try Activity.request(
+                attributes: attributes,
+                content: content,
+                pushType: nil
+            )
+        } catch {
+            print("⚠️ IntervalViewModel: Live Activity failed to start — \(error)")
+        }
+    }
+
+    private func updateLiveActivity() {
+        let activePhase = state.phase == .paused ? phaseBeforePause : state.phase
+        let phaseString: String
+        switch activePhase {
+        case .run:  phaseString = "Run"
+        case .walk: phaseString = "Walk"
+        default:    return  // only update during active run/walk phases
+        }
+        let updatedState = WaddleActivityAttributes.ContentState(
+            phase: phaseString,
+            timeRemaining: Int(state.timeRemaining),
+            currentCycle: state.currentCycle,
+            totalCycles: settings.totalCycles,
+            isUnlimited: settings.mode == .unlimited
+        )
+        Task {
+            await activity?.update(ActivityContent(state: updatedState, staleDate: nil))
+        }
+    }
+
+    private func endLiveActivity() {
+        Task {
+            await activity?.end(dismissalPolicy: .immediate)
+            activity = nil
         }
     }
 

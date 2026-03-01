@@ -6,7 +6,20 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BF01DE472F546B93004D61F3 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF01DE462F546B93004D61F3 /* WidgetKit.framework */; };
+		BF01DE492F546B93004D61F3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF01DE482F546B93004D61F3 /* SwiftUI.framework */; };
+		BF01DE582F546B94004D61F3 /* WaddleLiveActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BF01DE442F546B93004D61F3 /* WaddleLiveActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
+		BF01DE562F546B94004D61F3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFBAA6E22F4B634E0006355C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BF01DE432F546B93004D61F3;
+			remoteInfo = WaddleLiveActivityExtension;
+		};
 		BFBAA6F82F4B63500006355C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFBAA6E22F4B634E0006355C /* Project object */;
@@ -23,13 +36,44 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		BF01DE5D2F546B94004D61F3 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BF01DE582F546B94004D61F3 /* WaddleLiveActivityExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		BF01DE442F546B93004D61F3 /* WaddleLiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WaddleLiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BF01DE462F546B93004D61F3 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		BF01DE482F546B93004D61F3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		BFBAA6EA2F4B634F0006355C /* Waddle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Waddle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFBAA6F72F4B63500006355C /* WaddleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WaddleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BFBAA7012F4B63500006355C /* WaddleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WaddleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		BF01DE5C2F546B94004D61F3 /* Exceptions for "WaddleLiveActivity" folder in "WaddleLiveActivityExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BF01DE432F546B93004D61F3 /* WaddleLiveActivityExtension */;
+		};
+		BF01DE612F546E1D004D61F3 /* Exceptions for "Waddle" folder in "WaddleLiveActivityExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/WaddleActivityAttributes.swift,
+			);
+			target = BF01DE432F546B93004D61F3 /* WaddleLiveActivityExtension */;
+		};
 		BF3B61B02F4C4AB80067F5AB /* Exceptions for "Waddle" folder in "Waddle" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -40,10 +84,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		BF01DE4A2F546B93004D61F3 /* WaddleLiveActivity */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BF01DE5C2F546B94004D61F3 /* Exceptions for "WaddleLiveActivity" folder in "WaddleLiveActivityExtension" target */,
+			);
+			path = WaddleLiveActivity;
+			sourceTree = "<group>";
+		};
 		BFBAA6EC2F4B634F0006355C /* Waddle */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				BF3B61B02F4C4AB80067F5AB /* Exceptions for "Waddle" folder in "Waddle" target */,
+				BF01DE612F546E1D004D61F3 /* Exceptions for "Waddle" folder in "WaddleLiveActivityExtension" target */,
 			);
 			path = Waddle;
 			sourceTree = "<group>";
@@ -61,6 +114,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		BF01DE412F546B93004D61F3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF01DE492F546B93004D61F3 /* SwiftUI.framework in Frameworks */,
+				BF01DE472F546B93004D61F3 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BFBAA6E72F4B634F0006355C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -85,12 +147,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BF01DE452F546B93004D61F3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BF01DE462F546B93004D61F3 /* WidgetKit.framework */,
+				BF01DE482F546B93004D61F3 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		BFBAA6E12F4B634E0006355C = {
 			isa = PBXGroup;
 			children = (
 				BFBAA6EC2F4B634F0006355C /* Waddle */,
 				BFBAA6FA2F4B63500006355C /* WaddleTests */,
 				BFBAA7042F4B63500006355C /* WaddleUITests */,
+				BF01DE4A2F546B93004D61F3 /* WaddleLiveActivity */,
+				BF01DE452F546B93004D61F3 /* Frameworks */,
 				BFBAA6EB2F4B634F0006355C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,6 +174,7 @@
 				BFBAA6EA2F4B634F0006355C /* Waddle.app */,
 				BFBAA6F72F4B63500006355C /* WaddleTests.xctest */,
 				BFBAA7012F4B63500006355C /* WaddleUITests.xctest */,
+				BF01DE442F546B93004D61F3 /* WaddleLiveActivityExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,6 +182,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		BF01DE432F546B93004D61F3 /* WaddleLiveActivityExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BF01DE592F546B94004D61F3 /* Build configuration list for PBXNativeTarget "WaddleLiveActivityExtension" */;
+			buildPhases = (
+				BF01DE402F546B93004D61F3 /* Sources */,
+				BF01DE412F546B93004D61F3 /* Frameworks */,
+				BF01DE422F546B93004D61F3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BF01DE4A2F546B93004D61F3 /* WaddleLiveActivity */,
+			);
+			name = WaddleLiveActivityExtension;
+			packageProductDependencies = (
+			);
+			productName = WaddleLiveActivityExtension;
+			productReference = BF01DE442F546B93004D61F3 /* WaddleLiveActivityExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		BFBAA6E92F4B634F0006355C /* Waddle */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = BFBAA70B2F4B63500006355C /* Build configuration list for PBXNativeTarget "Waddle" */;
@@ -115,10 +211,12 @@
 				BFBAA6E62F4B634F0006355C /* Sources */,
 				BFBAA6E72F4B634F0006355C /* Frameworks */,
 				BFBAA6E82F4B634F0006355C /* Resources */,
+				BF01DE5D2F546B94004D61F3 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				BF01DE572F546B94004D61F3 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				BFBAA6EC2F4B634F0006355C /* Waddle */,
@@ -183,9 +281,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
+					BF01DE432F546B93004D61F3 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 					BFBAA6E92F4B634F0006355C = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -216,11 +317,19 @@
 				BFBAA6E92F4B634F0006355C /* Waddle */,
 				BFBAA6F62F4B63500006355C /* WaddleTests */,
 				BFBAA7002F4B63500006355C /* WaddleUITests */,
+				BF01DE432F546B93004D61F3 /* WaddleLiveActivityExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		BF01DE422F546B93004D61F3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BFBAA6E82F4B634F0006355C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -245,6 +354,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		BF01DE402F546B93004D61F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BFBAA6E62F4B634F0006355C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -269,6 +385,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		BF01DE572F546B94004D61F3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BF01DE432F546B93004D61F3 /* WaddleLiveActivityExtension */;
+			targetProxy = BF01DE562F546B94004D61F3 /* PBXContainerItemProxy */;
+		};
 		BFBAA6F92F4B63500006355C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BFBAA6E92F4B634F0006355C /* Waddle */;
@@ -282,6 +403,68 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		BF01DE5A2F546B94004D61F3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 57CANU86P7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WaddleLiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WaddleLiveActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.richardobeng.Waddle.WaddleLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BF01DE5B2F546B94004D61F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 57CANU86P7;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WaddleLiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WaddleLiveActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.richardobeng.Waddle.WaddleLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		BFBAA7092F4B63500006355C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -530,6 +713,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		BF01DE592F546B94004D61F3 /* Build configuration list for PBXNativeTarget "WaddleLiveActivityExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BF01DE5A2F546B94004D61F3 /* Debug */,
+				BF01DE5B2F546B94004D61F3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		BFBAA6E52F4B634E0006355C /* Build configuration list for PBXProject "Waddle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
