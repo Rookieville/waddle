@@ -47,7 +47,7 @@ struct ActiveView: View {
             Spacer()
 
             Button {
-                viewModel.stop()   // navigation is handled inside stop() based on mode
+                viewModel.stop()
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "stop.fill")
@@ -59,44 +59,25 @@ struct ActiveView: View {
                 .padding(.vertical, 8)
                 .background(.white.opacity(0.2), in: Capsule())
             }
+            .accessibilityLabel("Stop workout")
         }
     }
 
-    /// Phase label, timer digits, progress bar, next-phase preview.
+    /// Phase label above the circular timer ring.
     private var timerSection: some View {
         VStack(spacing: 24) {
-            // Phase label ("RUN" / "WALK" / "PAUSED") — driven by live ViewModel state
+            // Phase label ("RUN" / "WALK" / "PAUSED")
             PhaseIndicator(phase: viewModel.currentPhase)
+                .accessibilityLabel(phaseAccessibilityLabel)
 
-            // Timer countdown in large thin rounded digits
-            Text(TimeFormatter.format(viewModel.state.timeRemaining))
-                .font(.system(size: 96, weight: .thin, design: .rounded))
-                .foregroundStyle(.white)
-                .monospacedDigit()
-
-            // Linear progress bar
-            CircularTimer(progress: progressFraction, color: .white)
-                .padding(.horizontal, 8)
-
-            // Next phase preview
-            nextPhasePreview
-        }
-    }
-
-    /// "Next: Walk 2:00" hint — phase name and duration update on each phase switch.
-    private var nextPhasePreview: some View {
-        HStack(spacing: 6) {
-            Text("Next:")
-                .font(.system(.subheadline, design: .default))
-                .foregroundStyle(.white.opacity(0.7))
-
-            Text(viewModel.nextPhaseName)
-                .font(.system(.subheadline, design: .rounded).weight(.medium))
-                .foregroundStyle(.white.opacity(0.9))
-
-            Text(TimeFormatter.format(viewModel.nextPhaseDuration))
-                .font(.system(.subheadline, design: .rounded))
-                .foregroundStyle(.white.opacity(0.7))
+            // Circular ring — contains timer digits and next-phase hint inside
+            CircularTimer(
+                progress: viewModel.progress,
+                timeString: TimeFormatter.format(viewModel.state.timeRemaining),
+                nextPhaseLabel: nextPhaseLabel,
+                isActive: viewModel.state.phase != .paused
+            )
+            .accessibilityLabel("Time remaining: \(TimeFormatter.format(viewModel.state.timeRemaining))")
         }
     }
 
@@ -111,6 +92,7 @@ struct ActiveView: View {
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: viewModel.state.phase == .paused ? "play.fill" : "pause.fill")
+                    .animation(.easeInOut(duration: 0.3), value: viewModel.state.phase == .paused)
                 Text(viewModel.state.phase == .paused ? "Resume" : "Pause")
             }
             .font(.system(.title3, design: .default).weight(.medium))
@@ -124,13 +106,20 @@ struct ActiveView: View {
 
     // MARK: - Helpers
 
-    /// Progress fraction for the progress bar: 0 = just started, 1 = phase complete.
-    private var progressFraction: Double {
-        let total = viewModel.state.phase == .walk
-            ? viewModel.settings.walkDuration
-            : viewModel.settings.runDuration
-        guard total > 0 else { return 0 }
-        return (total - viewModel.state.timeRemaining) / total
+    /// Readable VoiceOver label for the current phase.
+    private var phaseAccessibilityLabel: String {
+        switch viewModel.currentPhase {
+        case .run:      return "Current phase: Run"
+        case .walk:     return "Current phase: Walk"
+        case .paused:   return "Workout paused"
+        case .complete: return "Workout complete"
+        default:        return "Workout"
+        }
+    }
+
+    /// Next-phase hint string rendered inside the circular ring.
+    private var nextPhaseLabel: String {
+        "Next: \(viewModel.nextPhaseName) \(TimeFormatter.format(viewModel.nextPhaseDuration))"
     }
 }
 

@@ -44,6 +44,7 @@ struct SetupView: View {
                     )
                     .onChange(of: runMinutes) { _, _ in syncRunDuration() }
                     .onChange(of: runSeconds) { _, _ in syncRunDuration() }
+                    .accessibilityLabel("Run duration")
 
                     // Walk duration picker
                     DurationPickerRow(
@@ -54,12 +55,15 @@ struct SetupView: View {
                     )
                     .onChange(of: walkMinutes) { _, _ in syncWalkDuration() }
                     .onChange(of: walkSeconds) { _, _ in syncWalkDuration() }
+                    .accessibilityLabel("Walk duration")
 
                     // Cycles toggle + count
                     cyclesSection
+                        .accessibilityElement(children: .contain)
 
                     // Countdown toggle
                     countdownSection
+                        .accessibilityLabel("Countdown before phase switch")
 
                     Spacer().frame(height: 8)
 
@@ -95,6 +99,7 @@ struct SetupView: View {
                 Toggle("", isOn: unlimitedBinding)
                     .labelsHidden()
                     .tint(Color.walkColor)
+                    .accessibilityLabel(viewModel.settings.mode == .unlimited ? "Unlimited mode" : "Limited mode, \(viewModel.settings.totalCycles) cycles")
             }
             .padding(DesignSystem.cardPadding)
             .background(Color.surface, in: RoundedRectangle(cornerRadius: DesignSystem.cornerRadius))
@@ -155,6 +160,7 @@ struct SetupView: View {
                 .padding(.vertical, 18)
                 .background(Color.runColor, in: RoundedRectangle(cornerRadius: DesignSystem.buttonCornerRadius))
         }
+        .accessibilityLabel("Start workout")
     }
 
     // MARK: - Binding Helpers

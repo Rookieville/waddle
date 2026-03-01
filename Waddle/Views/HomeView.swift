@@ -96,6 +96,7 @@ struct HomeView: View {
                 .padding(.vertical, 18)
                 .background(Color.runColor, in: RoundedRectangle(cornerRadius: DesignSystem.buttonCornerRadius))
         }
+        .accessibilityLabel("Set up and start a workout")
     }
 
     // MARK: - Helpers

@@ -17,7 +17,7 @@ screen layouts, architecture, data models, audio strategy, and milestones.
 
 Track the current milestone here. Update this line after each milestone is confirmed.
 
-**Current milestone: 5 — Background + lock screen**
+**Current milestone: 6 — Polish**
 
 | # | Milestone              | Status  |
 |---|------------------------|---------|
@@ -26,7 +26,7 @@ Track the current milestone here. Update this line after each milestone is confi
 | 3 | Phase switching + modes| ✅ Complete |
 | 4 | Voice prompts          | ✅ Complete |
 | 5 | Background + lock screen | ✅ Complete |
-| 6 | Polish                 | ⏳ Pending |
+| 6 | Polish                 | ✅ Complete |
 
 **Rule: complete and confirm one milestone before starting the next.**
 

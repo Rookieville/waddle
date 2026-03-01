@@ -34,6 +34,10 @@ final class IntervalViewModel: ObservableObject {
     @Published var state = WorkoutState()
     @Published var isRunning = false
 
+    /// Full duration of the current phase — used to calculate progress for the circular ring.
+    /// Updated at the start of each phase so the ring starts full and counts down to empty.
+    @Published var totalPhaseDuration: TimeInterval = 0
+
     // MARK: - Services (owned by ViewModel)
 
     private let timerService = TimerService()
@@ -154,6 +158,7 @@ final class IntervalViewModel: ObservableObject {
         state.phase         = phase
         state.currentCycle  = cycle
         state.timeRemaining = remaining
+        totalPhaseDuration  = phase == .run ? settings.runDuration : settings.walkDuration
         lastCountdownSpoken = 0   // prevent stale suppression for the new phase position
 
         // Resync timer from the reconciled remaining — resets startDate to now.
@@ -185,8 +190,10 @@ final class IntervalViewModel: ObservableObject {
         state.currentCycle = 1
         // Activate audio session before speaking — ensures music ducking is in
         // place before the first utterance fires, avoiding a race condition.
+        totalPhaseDuration = settings.runDuration
         audioSessionManager.activate()
         speechService.startEngine()   // engine must start after session is active
+        triggerHaptic(.heavy)
         speechService.play(.run)
         timerService.start(duration: settings.runDuration)
         // TimerService fires an immediate tick → state.timeRemaining updates at once
@@ -249,6 +256,7 @@ final class IntervalViewModel: ObservableObject {
                 case 2: cue = .two
                 default: cue = .one
                 }
+                triggerHaptic(.light)
                 speechService.play(cue)
             }
         }
@@ -265,6 +273,8 @@ final class IntervalViewModel: ObservableObject {
             lastCountdownSpoken = 0
             state.phase = .walk
             state.timeRemaining = settings.walkDuration         // flip display instantly
+            totalPhaseDuration = settings.walkDuration
+            triggerHaptic(.medium)
             speechService.play(.walk)
             timerService.start(duration: settings.walkDuration,
                                fireImmediately: false)          // let scheduled ticks drive it
@@ -278,6 +288,7 @@ final class IntervalViewModel: ObservableObject {
                 // All cycles done — auto-complete
                 state.phase = .complete
                 timerService.stop()
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
                 // Deactivate the audio session only after the complete cue finishes
                 // playing — so music resumes cleanly after the cue, not mid-play.
                 speechService.onAllSpeechFinished = { [weak self] in
@@ -292,6 +303,8 @@ final class IntervalViewModel: ObservableObject {
                 state.currentCycle += 1
                 state.phase = .run
                 state.timeRemaining = settings.runDuration      // flip display instantly
+                totalPhaseDuration = settings.runDuration
+                triggerHaptic(.heavy)
                 // "Last round!" plays first; "Run" follows after 0.8 s so it doesn't
                 // immediately cut off the previous cue (AVAudioPlayer doesn't queue).
                 if settings.mode == .limited && state.currentCycle == settings.totalCycles {
@@ -312,6 +325,11 @@ final class IntervalViewModel: ObservableObject {
     }
 
     // MARK: - Private Helpers
+
+    private func triggerHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.impactOccurred()
+    }
 
     private func phaseDuration(for phase: WorkoutPhase) -> TimeInterval {
         switch phase {
@@ -346,5 +364,12 @@ final class IntervalViewModel: ObservableObject {
     var nextPhaseDuration: TimeInterval {
         let active = state.phase == .paused ? phaseBeforePause : state.phase
         return active == .run ? settings.walkDuration : settings.runDuration
+    }
+
+    /// Fraction of the current phase remaining — 1.0 at phase start, 0.0 at phase end.
+    /// Drives the circular progress ring countdown in ActiveView.
+    var progress: Double {
+        guard totalPhaseDuration > 0 else { return 0 }
+        return state.timeRemaining / totalPhaseDuration
     }
 }
