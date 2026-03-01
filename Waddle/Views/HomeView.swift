@@ -1,4 +1,4 @@
-// Home screen — entry point, preset selection, and primary CTA
+// Home screen — entry point, preset grid selection, and primary CTA
 
 import SwiftUI
 
@@ -8,7 +8,26 @@ struct HomeView: View {
 
     // MARK: - Environment
 
-    @EnvironmentObject private var viewModel: IntervalViewModel
+    @EnvironmentObject private var viewModel:   IntervalViewModel
+    @EnvironmentObject private var presetStore: PresetStore
+
+    // MARK: - State
+
+    /// ID of the currently selected preset. nil = nothing selected (CTA navigates to SetupView).
+    @State private var selectedPresetID: UUID? = nil
+    /// Whether the grid is in select/delete mode.
+    @State private var isSelecting             = false
+    /// The preset awaiting delete confirmation — drives the delete alert.
+    @State private var presetToDelete: Preset? = nil
+    /// Presents SettingsView as a sheet.
+    @State private var showSettings            = false
+
+    // MARK: - Grid Layout
+
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
 
     // MARK: - Body
 
@@ -16,114 +35,185 @@ struct HomeView: View {
         ZStack {
             Color.waddleBackground.ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(spacing: 0) {
 
-                // App name
-                appNameHeader
-
-                Spacer().frame(height: 48)
-
-                // Heading
+                // Fixed heading — never scrolls or gets pushed
                 headingSection
+                    .padding(.horizontal, DesignSystem.horizontalPadding)
+                    .padding(.top, 20)
+                    .padding(.bottom, 16)
 
-                Spacer().frame(height: 40)
+                // Scrollable preset grid — fills all remaining vertical space
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVGrid(columns: columns, spacing: 12) {
+                        presetGridContent
+                    }
+                    .padding(.horizontal, DesignSystem.horizontalPadding)
+                    .padding(.vertical, 8)
+                }
 
-                // Preset chips
-                presetChipsSection
-
-                Spacer()
-
-                // Primary CTA
+                // Fixed CTA — pinned outside the ScrollView, always visible
                 ctaButton
+                    .padding(.horizontal, DesignSystem.horizontalPadding)
+                    .padding(.top, 16)
+                    .padding(.bottom, 40)
             }
-            .padding(.horizontal, DesignSystem.horizontalPadding)
-            .padding(.top, 24)
-            .padding(.bottom, 40)
         }
-        .navigationBarHidden(true)
+        .navigationTitle("Waddle")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                HStack(spacing: 16) {
+                    // Edit / Done toggle — reveals individual delete buttons on preset cards
+                    Button(isSelecting ? "Done" : "Edit") {
+                        isSelecting.toggle()
+                        if !isSelecting { selectedPresetID = nil }
+                    }
+                    .foregroundStyle(Color.textMuted)
+                    .font(.system(size: 15))
+
+                    // Settings gear
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(Color.textMuted)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showSettings) {
+            NavigationStack {
+                SettingsView()
+            }
+            .environmentObject(presetStore)
+        }
+        .alert(
+            "Delete \"\(presetToDelete?.name ?? "")\"?",
+            isPresented: Binding(
+                get:  { presetToDelete != nil },
+                set:  { if !$0 { presetToDelete = nil } }
+            )
+        ) {
+            Button("Delete", role: .destructive) {
+                if let preset = presetToDelete,
+                   let idx = presetStore.presets.firstIndex(where: { $0.id == preset.id }) {
+                    if selectedPresetID == preset.id { selectedPresetID = nil }
+                    presetStore.delete(at: IndexSet(integer: idx))
+                }
+                presetToDelete = nil
+            }
+            Button("Cancel", role: .cancel) { presetToDelete = nil }
+        }
+        .onAppear {
+            selectedPresetID = nil
+            isSelecting      = false
+        }
     }
 
     // MARK: - Subviews
 
-    private var appNameHeader: some View {
-        Text("🐧 Waddle")
-            .font(.system(.body, design: .default).weight(.semibold))
-            .foregroundStyle(Color.textMuted)
-    }
-
     private var headingSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Set your\nwaddle pace")
-                .font(.system(size: 38, weight: .bold, design: .rounded))
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Set your waddle pace")
+                .font(.system(size: 30, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.textPrimary)
-                .lineSpacing(4)
 
             Text("Pick a preset or set your own tempo")
                 .font(.system(.body, design: .default))
                 .foregroundStyle(Color.textMuted)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var presetChipsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Row 1
-            HStack(spacing: 12) {
-                PresetChip(label: "30s / 2m") {
-                    applyPreset(run: 30, walk: 120)
-                }
-                PresetChip(label: "1m / 1m") {
-                    applyPreset(run: 60, walk: 60)
-                }
-            }
+    @ViewBuilder
+    private var presetGridContent: some View {
 
-            // Row 2
-            HStack(spacing: 12) {
-                PresetChip(label: "Custom") {
-                    viewModel.navigate(to: .setup)
-                }
-            }
+        // Custom card — always first, immune to select/delete mode
+        PresetCardView(
+            title:       "Custom",
+            subtitle:    "Set your own pace",
+            detail:      nil,
+            iconName:    "plus",
+            isSelected:  false,
+            isSelecting: false,
+            onTap:       { viewModel.navigate(to: .setup) },
+            onDelete:    nil
+        )
+
+        // Saved presets (Beginner, Intermediate, Endurance + any user-created)
+        ForEach(presetStore.presets) { preset in
+            PresetCardView(
+                title:       preset.name,
+                subtitle:    durationSummary(preset),
+                detail:      cycleSummary(preset),
+                iconName:    nil,
+                isSelected:  selectedPresetID == preset.id,
+                isSelecting: isSelecting,
+                onTap: {
+                    // Card taps only select a preset when not in delete mode
+                    if !isSelecting { selectedPresetID = preset.id }
+                },
+                onDelete: { presetToDelete = preset }
+            )
         }
     }
 
     private var ctaButton: some View {
         Button {
-            viewModel.navigate(to: .setup)
+            if let preset = selectedPreset {
+                startWithPreset(preset)
+            } else {
+                viewModel.navigate(to: .setup)
+            }
         } label: {
-            Text("Waddle on →")
+            Text(ctaLabel)
                 .font(.system(.body, design: .default).weight(.semibold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 18)
                 .background(Color.runColor, in: RoundedRectangle(cornerRadius: DesignSystem.buttonCornerRadius))
         }
-        .accessibilityLabel("Set up and start a workout")
+        .opacity(selectedPreset == nil ? 0.5 : 1.0)
+        .accessibilityLabel(selectedPreset.map { "Start \($0.name) workout" } ?? "Set up and start a workout")
     }
 
     // MARK: - Helpers
 
-    private func applyPreset(run: TimeInterval, walk: TimeInterval) {
-        viewModel.settings.runDuration = run
-        viewModel.settings.walkDuration = walk
-        viewModel.navigate(to: .setup)
+    private var selectedPreset: Preset? {
+        presetStore.presets.first { $0.id == selectedPresetID }
     }
-}
 
-// MARK: - PresetChip
+    private var ctaLabel: String {
+        guard let preset = selectedPreset else { return "Waddle on →" }
+        let name      = preset.name
+        let truncated = name.count > 12 ? String(name.prefix(12)) + "…" : name
+        return "Start \(truncated) →"
+    }
 
-private struct PresetChip: View {
+    private func startWithPreset(_ preset: Preset) {
+        viewModel.settings.runDuration  = preset.runDuration
+        viewModel.settings.walkDuration = preset.walkDuration
+        viewModel.settings.mode         = preset.mode
+        viewModel.settings.totalCycles  = preset.totalCycles
+        viewModel.start()
+        viewModel.navigate(to: .active)
+    }
 
-    let label: String
-    let action: () -> Void
+    private func durationSummary(_ preset: Preset) -> String {
+        "\(humanDuration(preset.runDuration)) run · \(humanDuration(preset.walkDuration)) walk"
+    }
 
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(.body, design: .rounded).weight(.medium))
-                .foregroundStyle(Color.textPrimary)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(Color.surface, in: RoundedRectangle(cornerRadius: DesignSystem.buttonCornerRadius))
-        }
+    private func cycleSummary(_ preset: Preset) -> String {
+        preset.mode == .unlimited ? "Unlimited" : "\(preset.totalCycles) rounds"
+    }
+
+    private func humanDuration(_ seconds: TimeInterval) -> String {
+        let total = Int(seconds)
+        let mins  = total / 60
+        let secs  = total % 60
+        if secs == 0 { return "\(mins) min" }
+        return TimeFormatter.format(seconds)
     }
 }
 
@@ -134,4 +224,5 @@ private struct PresetChip: View {
         HomeView()
     }
     .environmentObject(IntervalViewModel())
+    .environmentObject(PresetStore())
 }

@@ -8,7 +8,8 @@ struct SetupView: View {
 
     // MARK: - Environment
 
-    @EnvironmentObject private var viewModel: IntervalViewModel
+    @EnvironmentObject private var viewModel:   IntervalViewModel
+    @EnvironmentObject private var presetStore: PresetStore
 
     // MARK: - Local Picker State
     // Duration pickers work in (minutes, seconds) components.
@@ -18,6 +19,12 @@ struct SetupView: View {
     @State private var runSeconds: Int = 30
     @State private var walkMinutes: Int = 2
     @State private var walkSeconds: Int = 0
+
+    // MARK: - Save Preset Alert State
+
+    @State private var showSavePresetAlert    = false
+    @State private var presetName             = ""
+    @State private var showSavedConfirmation  = false
 
     // MARK: - Body
 
@@ -34,6 +41,11 @@ struct SetupView: View {
                         .foregroundStyle(Color.textPrimary)
                         .lineSpacing(4)
                         .padding(.top, 8)
+
+                    // Saved preset chips — quick-apply a saved configuration
+                    if !presetStore.presets.isEmpty {
+                        presetChipsSection
+                    }
 
                     // Run duration picker
                     DurationPickerRow(
@@ -61,11 +73,10 @@ struct SetupView: View {
                     cyclesSection
                         .accessibilityElement(children: .contain)
 
-                    // Countdown toggle
-                    countdownSection
-                        .accessibilityLabel("Countdown before phase switch")
-
                     Spacer().frame(height: 8)
+
+                    // Save as Preset (secondary action)
+                    savePresetButton
 
                     // Start button
                     startButton
@@ -74,12 +85,54 @@ struct SetupView: View {
                 .padding(.bottom, 40)
             }
         }
+        .overlay(alignment: .top) {
+            if showSavedConfirmation {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                    Text("Preset saved!")
+                        .fontWeight(.medium)
+                }
+                .foregroundStyle(Color.walkColor)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Color.surface, in: RoundedRectangle(cornerRadius: 12))
+                .padding(.top, 16)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.4), value: showSavedConfirmation)
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { loadFromViewModel() }
+        .alert("Save as Preset", isPresented: $showSavePresetAlert) {
+            TextField("Preset name", text: $presetName)
+            Button("Save") { savePreset() }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Give this configuration a name")
+        }
     }
 
     // MARK: - Subviews
+
+    private var presetChipsSection: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(presetStore.presets) { preset in
+                    Button {
+                        applyPreset(preset)
+                    } label: {
+                        Text(preset.name)
+                            .font(.system(.footnote, design: .rounded).weight(.semibold))
+                            .foregroundStyle(Color.textPrimary)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(Color.surface, in: RoundedRectangle(cornerRadius: DesignSystem.buttonCornerRadius))
+                    }
+                }
+            }
+        }
+    }
 
     private var cyclesSection: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -127,25 +180,22 @@ struct SetupView: View {
         }
     }
 
-    private var countdownSection: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Countdown before switch")
-                    .font(.system(.body, design: .default).weight(.medium))
-                    .foregroundStyle(Color.textPrimary)
-                Text(viewModel.settings.countdownEnabled ? "3 … 2 … 1 before each phase" : "No countdown")
-                    .font(.system(.footnote, design: .default))
-                    .foregroundStyle(Color.textMuted)
-            }
-
-            Spacer()
-
-            Toggle("", isOn: $viewModel.settings.countdownEnabled)
-                .labelsHidden()
-                .tint(Color.walkColor)
+    private var savePresetButton: some View {
+        Button {
+            presetName = ""
+            showSavePresetAlert = true
+        } label: {
+            Text("Save as Preset")
+                .font(.system(.body, design: .default).weight(.medium))
+                .foregroundStyle(Color.runColor)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: DesignSystem.buttonCornerRadius)
+                        .stroke(Color.runColor, lineWidth: 1.5)
+                )
         }
-        .padding(DesignSystem.cardPadding)
-        .background(Color.surface, in: RoundedRectangle(cornerRadius: DesignSystem.cornerRadius))
     }
 
     private var startButton: some View {
@@ -171,6 +221,34 @@ struct SetupView: View {
             get: { viewModel.settings.mode == .unlimited },
             set: { viewModel.settings.mode = $0 ? .unlimited : .limited }
         )
+    }
+
+    // MARK: - Preset Helpers
+
+    private func applyPreset(_ preset: Preset) {
+        viewModel.settings.runDuration  = preset.runDuration
+        viewModel.settings.walkDuration = preset.walkDuration
+        viewModel.settings.mode         = preset.mode
+        viewModel.settings.totalCycles  = preset.totalCycles
+        loadFromViewModel()
+    }
+
+    private func savePreset() {
+        let trimmed = presetName.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        let preset = Preset(
+            name:         trimmed,
+            runDuration:  viewModel.settings.runDuration,
+            walkDuration: viewModel.settings.walkDuration,
+            mode:         viewModel.settings.mode,
+            totalCycles:  viewModel.settings.totalCycles
+        )
+        presetStore.add(preset)
+        presetName = ""
+        withAnimation { showSavedConfirmation = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation { showSavedConfirmation = false }
+        }
     }
 
     // MARK: - Sync Helpers
@@ -247,4 +325,5 @@ private struct DurationPickerRow: View {
         SetupView()
     }
     .environmentObject(IntervalViewModel())
+    .environmentObject(PresetStore())
 }

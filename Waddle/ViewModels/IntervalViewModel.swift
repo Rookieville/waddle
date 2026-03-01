@@ -146,7 +146,7 @@ final class IntervalViewModel: ObservableObject {
                         self?.audioSessionManager.deactivate()
                         self?.speechService.onAllSpeechFinished = nil
                     }
-                    speechService.play(.complete)
+                    playVoiceCue(.complete)
                     navigate(to: .done)
                     return
                 }
@@ -200,7 +200,7 @@ final class IntervalViewModel: ObservableObject {
         audioSessionManager.activate()
         speechService.startEngine()   // engine must start after session is active
         triggerHaptic(.heavy)
-        speechService.play(.run)
+        playVoiceCue(.run)
         timerService.start(duration: settings.runDuration)
         // TimerService fires an immediate tick → state.timeRemaining updates at once
         startLiveActivity()
@@ -255,7 +255,7 @@ final class IntervalViewModel: ObservableObject {
         // Countdown: play "3", "2", "1" once each in the 3 seconds before phase end.
         // Int(remaining) floors to a whole-second bucket — e.g. 3.5 → 3, 2.9 → 2.
         // lastCountdownSpoken prevents the 0.5-s tick from playing the same cue twice.
-        if settings.countdownEnabled {
+        if UserDefaults.standard.bool(forKey: UserSettingsKey.countdownEnabled) {
             let second = Int(remaining)
             if second >= 1 && second <= 3 && second != lastCountdownSpoken {
                 lastCountdownSpoken = second
@@ -266,7 +266,7 @@ final class IntervalViewModel: ObservableObject {
                 default: cue = .one
                 }
                 triggerHaptic(.light)
-                speechService.play(cue)
+                playVoiceCue(cue)
             }
         }
     }
@@ -284,7 +284,7 @@ final class IntervalViewModel: ObservableObject {
             state.timeRemaining = settings.walkDuration         // flip display instantly
             totalPhaseDuration = settings.walkDuration
             triggerHaptic(.medium)
-            speechService.play(.walk)
+            playVoiceCue(.walk)
             timerService.start(duration: settings.walkDuration,
                                fireImmediately: false)          // let scheduled ticks drive it
             updateLiveActivity()
@@ -298,7 +298,9 @@ final class IntervalViewModel: ObservableObject {
                 // All cycles done — auto-complete
                 state.phase = .complete
                 timerService.stop()
-                UINotificationFeedbackGenerator().notificationOccurred(.success)
+                if UserDefaults.standard.bool(forKey: UserSettingsKey.hapticsEnabled) {
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
                 // Deactivate the audio session only after the complete cue finishes
                 // playing — so music resumes cleanly after the cue, not mid-play.
                 speechService.onAllSpeechFinished = { [weak self] in
@@ -306,7 +308,7 @@ final class IntervalViewModel: ObservableObject {
                     self?.audioSessionManager.deactivate()
                     self?.speechService.onAllSpeechFinished = nil
                 }
-                speechService.play(.complete)
+                playVoiceCue(.complete)
                 endLiveActivity()
                 navigate(to: .done)
             } else {
@@ -319,12 +321,12 @@ final class IntervalViewModel: ObservableObject {
                 // "Last round!" plays first; "Run" follows after 0.8 s so it doesn't
                 // immediately cut off the previous cue (AVAudioPlayer doesn't queue).
                 if settings.mode == .limited && state.currentCycle == settings.totalCycles {
-                    speechService.play(.lastRound)
+                    playVoiceCue(.lastRound)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
-                        self?.speechService.play(.run)
+                        self?.playVoiceCue(.run)
                     }
                 } else {
-                    speechService.play(.run)
+                    playVoiceCue(.run)
                 }
                 timerService.start(duration: settings.runDuration,
                                    fireImmediately: false)      // let scheduled ticks drive it
@@ -390,8 +392,14 @@ final class IntervalViewModel: ObservableObject {
     // MARK: - Private Helpers
 
     private func triggerHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        guard UserDefaults.standard.bool(forKey: UserSettingsKey.hapticsEnabled) else { return }
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
+    }
+
+    private func playVoiceCue(_ cue: WorkoutCue) {
+        guard UserDefaults.standard.bool(forKey: UserSettingsKey.voiceEnabled) else { return }
+        speechService.play(cue)
     }
 
     private func phaseDuration(for phase: WorkoutPhase) -> TimeInterval {

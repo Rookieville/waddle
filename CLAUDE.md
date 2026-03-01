@@ -17,7 +17,7 @@ screen layouts, architecture, data models, audio strategy, and milestones.
 
 Track the current milestone here. Update this line after each milestone is confirmed.
 
-**Current milestone: 7 — Live Activity & Dynamic Island**
+**Current milestone: 8 — Custom Presets & Settings**
 
 | # | Milestone              | Status  |
 |---|------------------------|---------|
@@ -28,6 +28,7 @@ Track the current milestone here. Update this line after each milestone is confi
 | 5 | Background + lock screen | ✅ Complete |
 | 6 | Polish                 | ✅ Complete |
 | 7 | Live Activity + Dynamic Island | ✅ Complete |
+| 8 | Custom Presets + Settings | ✅ Complete |
 
 **Rule: complete and confirm one milestone before starting the next.**
 
