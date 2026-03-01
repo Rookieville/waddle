@@ -17,15 +17,15 @@ screen layouts, architecture, data models, audio strategy, and milestones.
 
 Track the current milestone here. Update this line after each milestone is confirmed.
 
-**Current milestone: 2 — Timer engine**
+**Current milestone: 5 — Background + lock screen**
 
 | # | Milestone              | Status  |
 |---|------------------------|---------|
 | 1 | Static UI shell        | ✅ Complete |
 | 2 | Timer engine           | ✅ Complete |
-| 3 | Phase switching + modes| ⏳ Pending |
-| 4 | Voice prompts          | ⏳ Pending |
-| 5 | Background + lock screen | ⏳ Pending |
+| 3 | Phase switching + modes| ✅ Complete |
+| 4 | Voice prompts          | ✅ Complete |
+| 5 | Background + lock screen | ✅ Complete |
 | 6 | Polish                 | ⏳ Pending |
 
 **Rule: complete and confirm one milestone before starting the next.**
@@ -126,7 +126,7 @@ Build from the command line to catch errors without switching to Xcode:
 ```bash
 # Build for simulator (replace with your scheme/simulator as needed)
 xcodebuild -scheme Waddle \
-           -destination 'platform=iOS Simulator,name=iPhone 16' \
+           -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
            build 2>&1 | grep -E 'error:|warning:|Build succeeded|Build FAILED'
 ```
 

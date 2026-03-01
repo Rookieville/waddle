@@ -53,12 +53,14 @@ final class TimerService {
     ///
     /// Resets all state, schedules the repeating timer, then fires an immediate
     /// tick so the display updates without waiting up to 0.5 s.
-    func start(duration: TimeInterval) {
+    func start(duration: TimeInterval, fireImmediately: Bool = true) {
         stop()                      // invalidate any previous timer before starting fresh
         phaseDuration = duration
         startDate = Date()
         scheduleTimer()
-        onTick?(duration)           // immediate tick — no lag on initial display
+        if fireImmediately {
+            onTick?(duration)       // immediate tick — no lag on initial display
+        }
     }
 
     /// Freeze the countdown. Call `resume()` to continue from this exact point.

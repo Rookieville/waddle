@@ -21,5 +21,5 @@ struct WorkoutSettings {
     var totalCycles: Int = 5
 
     /// When true, a "3 … 2 … 1" voice countdown fires 3 s before each phase switch.
-    var countdownEnabled: Bool = true
+    var countdownEnabled: Bool = false
 }

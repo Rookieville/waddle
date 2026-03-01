@@ -31,7 +31,7 @@ struct DoneView: View {
                     .multilineTextAlignment(.center)
                     .padding(.bottom, 12)
 
-                // Stats row (hardcoded for Milestone 1)
+                // Stats row — live cycle count + elapsed time
                 statsRow
 
                 Spacer()
@@ -83,13 +83,11 @@ struct DoneView: View {
 
     // MARK: - Helpers
 
-    /// A formatted stats string. Uses hardcoded values for Milestone 1;
-    /// replaced with live workout data in Milestone 3.
+    /// "X rounds · Xm Ys" — live cycle count and total elapsed time from the just-completed workout.
     private var statsSummary: String {
-        let cycles = viewModel.settings.mode == .limited
-            ? "\(viewModel.settings.totalCycles) rounds"
-            : "Unlimited"
-        return "\(cycles)  ·  17m 30s"
+        let n = viewModel.state.currentCycle
+        let rounds = "\(n) round\(n == 1 ? "" : "s")"
+        return "\(rounds)  ·  \(TimeFormatter.formatElapsed(viewModel.elapsedTime))"
     }
 }
 

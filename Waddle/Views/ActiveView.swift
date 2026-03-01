@@ -14,8 +14,10 @@ struct ActiveView: View {
 
     var body: some View {
         ZStack {
-            // Full-bleed background — colour driven by phase (run=coral, walk=teal)
-            viewModel.phaseColor.ignoresSafeArea()
+            // Full-bleed background — cross-fades over 0.6s on each phase transition
+            viewModel.phaseColor
+                .ignoresSafeArea()
+                .animation(.easeInOut(duration: 0.6), value: viewModel.state.phase)
 
             VStack(spacing: 0) {
                 topBar
@@ -45,8 +47,7 @@ struct ActiveView: View {
             Spacer()
 
             Button {
-                viewModel.stop()
-                viewModel.navigate(to: .done)
+                viewModel.stop()   // navigation is handled inside stop() based on mode
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "stop.fill")
@@ -82,18 +83,18 @@ struct ActiveView: View {
         }
     }
 
-    /// "Next: Walk  2:00" hint shown below the progress bar.
+    /// "Next: Walk 2:00" hint — phase name and duration update on each phase switch.
     private var nextPhasePreview: some View {
         HStack(spacing: 6) {
             Text("Next:")
                 .font(.system(.subheadline, design: .default))
                 .foregroundStyle(.white.opacity(0.7))
 
-            Text("Walk")
+            Text(viewModel.nextPhaseName)
                 .font(.system(.subheadline, design: .rounded).weight(.medium))
                 .foregroundStyle(.white.opacity(0.9))
 
-            Text(TimeFormatter.format(viewModel.settings.walkDuration))
+            Text(TimeFormatter.format(viewModel.nextPhaseDuration))
                 .font(.system(.subheadline, design: .rounded))
                 .foregroundStyle(.white.opacity(0.7))
         }
@@ -125,10 +126,11 @@ struct ActiveView: View {
 
     /// Progress fraction for the progress bar: 0 = just started, 1 = phase complete.
     private var progressFraction: Double {
-        let total = viewModel.settings.runDuration  // hardcoded to run for Milestone 1
+        let total = viewModel.state.phase == .walk
+            ? viewModel.settings.walkDuration
+            : viewModel.settings.runDuration
         guard total > 0 else { return 0 }
-        let elapsed = total - viewModel.state.timeRemaining
-        return elapsed / total
+        return (total - viewModel.state.timeRemaining) / total
     }
 }
 

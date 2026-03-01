@@ -58,6 +58,9 @@ struct SetupView: View {
                     // Cycles toggle + count
                     cyclesSection
 
+                    // Countdown toggle
+                    countdownSection
+
                     Spacer().frame(height: 8)
 
                     // Start button
@@ -117,6 +120,27 @@ struct SetupView: View {
                 .background(Color.surface, in: RoundedRectangle(cornerRadius: DesignSystem.cornerRadius))
             }
         }
+    }
+
+    private var countdownSection: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Countdown before switch")
+                    .font(.system(.body, design: .default).weight(.medium))
+                    .foregroundStyle(Color.textPrimary)
+                Text(viewModel.settings.countdownEnabled ? "3 … 2 … 1 before each phase" : "No countdown")
+                    .font(.system(.footnote, design: .default))
+                    .foregroundStyle(Color.textMuted)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: $viewModel.settings.countdownEnabled)
+                .labelsHidden()
+                .tint(Color.walkColor)
+        }
+        .padding(DesignSystem.cardPadding)
+        .background(Color.surface, in: RoundedRectangle(cornerRadius: DesignSystem.cornerRadius))
     }
 
     private var startButton: some View {
