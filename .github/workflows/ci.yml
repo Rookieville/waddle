@@ -27,6 +27,7 @@ jobs:
 
       - name: Build for simulator
         run: |
+          set -o pipefail
           SIMULATOR_UDID=$(xcrun simctl list devices available | grep -m 1 'iPhone' | awk -F '[()]' '{print $2}')
           if [ -z "$SIMULATOR_UDID" ]; then
             echo "No available iPhone simulator found."
@@ -43,6 +44,7 @@ jobs:
 
       - name: Run tests
         run: |
+          set -o pipefail
           SIMULATOR_UDID=$(xcrun simctl list devices available | grep -m 1 'iPhone' | awk -F '[()]' '{print $2}')
           if [ -z "$SIMULATOR_UDID" ]; then
             echo "No available iPhone simulator found."
