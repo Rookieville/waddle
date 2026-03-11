@@ -1,0 +1,45 @@
+name: Waddle CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Install xcpretty
+        run: gem install xcpretty
+
+      - name: Show build environment
+        run: |
+          xcodebuild -version
+          xcrun simctl list devicetypes | grep iPhone | tail -5
+
+      - name: Build for simulator
+        run: |
+          xcodebuild build \
+            -project Waddle.xcodeproj \
+            -scheme Waddle \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -project Waddle.xcodeproj \
+            -scheme Waddle \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty
